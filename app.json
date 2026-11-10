@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "icon": "./assets/icon.png",
+    "android": {
+      "package": "com.pbranked_6a9d.runable",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0b0c10"
+      },
+      "edgeToEdgeEnabled": true,
+      "softwareKeyboardLayoutMode": "resize",
+      "versionCode": 2
+    },
+    "extra": {
+      "apiUrl": "https://pbranke-cw8e4hd-preview-4200.runable.site/",
+      "applicationId": "pbranke-cw8e4hd",
+      "runableAuthIssuer": "https://api.runable.com/api/auth"
+    },
+    "ios": {
+      "bundleIdentifier": "com.pbranked_6a9d.runable",
+      "supportsTablet": true,
+      "buildNumber": "2"
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0b0c10"
+    },
+    "name": "PokeFightz",
+    "slug": "pokefightz",
+    "version": "1.1.0",
+    "scheme": "runable-pbranke-cw8e4hd",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
