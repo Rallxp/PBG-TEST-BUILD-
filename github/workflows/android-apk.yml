@@ -27,7 +27,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Extract uploaded source
+      - namate: Extract uploaded source
         working-directory: ${{ github.workspace }}
         run: |
           mkdir -p source
