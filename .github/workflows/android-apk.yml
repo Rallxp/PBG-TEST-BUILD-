@@ -50,6 +50,9 @@ jobs:
       - name: TypeScript check
         run: npm run typecheck
 
+      - name: Unit tests
+        run: npm test
+
       - name: Generate Android project on GitHub runner
         run: npx expo prebuild --platform android --no-install --clean
 
@@ -68,7 +71,7 @@ jobs:
         run: |
           mkdir -p artifacts
           cp android/app/build/outputs/apk/release/app-release.apk artifacts/PokeFightz-test.apk
-          sha256sum artifacts/PokeFightz-test.apk > artifacts/SHA256SUMS.txt
+          (cd artifacts && sha256sum PokeFightz-test.apk > SHA256SUMS.txt)
           echo '## PokeFightz Android APK' >> "$GITHUB_STEP_SUMMARY"
           echo 'Download **PokeFightz-test-apk** from the artifacts section below.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Signed with a test key; not suitable for Google Play. Requires internet access and a public hosted clone.' >> "$GITHUB_STEP_SUMMARY"

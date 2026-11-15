@@ -2,16 +2,17 @@ import { Platform } from "react-native";
 
 export const isWeb = Platform.OS === "web";
 
-/**
- * Injects the iPhone 16 Pro status bar into the Expo web preview:
- * 1. A fixed transparent navbar with the Dynamic Island pill
- * 2. CSS padding so app content starts below the DI
- * 3. Body background polling to fill the padding gap with the app's color
- */
-export function startWebSafeArea() {
-  if (typeof document === "undefined") return;
-  if (document.getElementById("__runable_status_bar")) return;
+const noop = () => {};
 
+/**
+ * Injects the iPhone 16 Pro status bar into the Expo web preview.
+ * Returns a cleanup function for the DOM nodes, polling interval and body color.
+ */
+export function startWebSafeArea(): () => void {
+  if (typeof document === "undefined") return noop;
+  if (document.getElementById("__runable_status_bar")) return noop;
+
+  const previousBodyBackground = document.body.style.backgroundColor;
   const style = document.createElement("style");
   style.id = "__runable_safe_area";
   style.textContent = [
@@ -29,18 +30,27 @@ export function startWebSafeArea() {
   bar.appendChild(di);
   document.body.appendChild(bar);
 
-  setInterval(() => {
+  const interval = setInterval(() => {
     const x = Math.round(window.innerWidth / 2);
-    const els = document.elementsFromPoint(x, 62);
-    for (const el of els) {
-      if (el === document.body || el === document.documentElement) continue;
-      const bg = getComputedStyle(el).backgroundColor;
-      if (bg && bg !== "transparent" && bg !== "rgba(0, 0, 0, 0)") {
-        const m = bg.match(/rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/);
-        if (m && parseFloat(m[1]) < 0.5) continue;
-        if (document.body.style.backgroundColor !== bg) document.body.style.backgroundColor = bg;
+    const elements = document.elementsFromPoint(x, 62);
+    for (const element of elements) {
+      if (element === document.body || element === document.documentElement) continue;
+      const background = getComputedStyle(element).backgroundColor;
+      if (background && background !== "transparent" && background !== "rgba(0, 0, 0, 0)") {
+        const alpha = background.match(/rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/);
+        if (alpha && parseFloat(alpha[1]) < 0.5) continue;
+        if (document.body.style.backgroundColor !== background) {
+          document.body.style.backgroundColor = background;
+        }
         return;
       }
     }
   }, 250);
+
+  return () => {
+    clearInterval(interval);
+    style.remove();
+    bar.remove();
+    document.body.style.backgroundColor = previousBodyBackground;
+  };
 }

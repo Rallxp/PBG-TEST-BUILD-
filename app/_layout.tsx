@@ -18,7 +18,8 @@ const hostname = applicationId ? `${applicationId}-mobile` : "localhost";
 
 export default function RootLayout() {
   useEffect(() => {
-    if (isWeb) startWebSafeArea();
+    if (!isWeb) return;
+    return startWebSafeArea();
   }, []);
 
   return (
@@ -28,7 +29,7 @@ export default function RootLayout() {
         config={{
           hostname,
           collectorUrl: "https://r.lilstts.com/events",
-          devmode: true,
+          devmode: __DEV__,
         }}
       >
         <SafeAreaProvider>
