@@ -1,11 +1,14 @@
 {
   "name": "pokefightz-android",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
+    "test": "node --import tsx --test tests/clone-navigation.test.ts",
     "typecheck": "tsc --noEmit",
-    "prebuild:android": "expo prebuild --platform android --no-install"
+    "prebuild:android": "expo prebuild --platform android --no-install",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.96.1",
@@ -15,6 +18,7 @@
     "expo-router": "~6.0.23",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
+    "expo-system-ui": "~6.0.9",
     "onedollarstats": "^0.0.23",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -26,6 +30,7 @@
   },
   "devDependencies": {
     "@types/react": "19.1.17",
+    "tsx": "^4.23.15",
     "typescript": "~5.9.2"
   },
   "private": true

@@ -111,7 +111,7 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     const { errors, expanded, expandedIndex, copied } = this.state;
 
-    if (errors.length === 0 || Platform.OS !== "web") return this.props.children;
+    if (errors.length === 0) return this.props.children;
 
     const { height } = Dimensions.get("window");
     const detailsMaxHeight = Math.min(height * 0.5, 440);
@@ -189,9 +189,11 @@ export class ErrorBoundary extends Component<Props, State> {
                 {expanded ? "Tap to collapse" : "Tap to see details"}
               </Text>
             </View>
-            <TouchableOpacity style={s.copyBtn} onPress={this.copy} activeOpacity={0.7}>
-              <Text style={s.copyText}>{copied ? "Copied!" : "Copy"}</Text>
-            </TouchableOpacity>
+            {Platform.OS === "web" && (
+              <TouchableOpacity style={s.copyBtn} onPress={this.copy} activeOpacity={0.7}>
+                <Text style={s.copyText}>{copied ? "Copied!" : "Copy"}</Text>
+              </TouchableOpacity>
+            )}
           </TouchableOpacity>
         </View>
       </View>

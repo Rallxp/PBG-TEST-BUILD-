@@ -32,13 +32,16 @@ To change the hosted URL, edit `constants/clone.ts` and rebuild.
 
 ```sh
 npm ci --include=dev
+npm test
 npm run typecheck
 ```
 
 The build workflow generates native Android files on GitHub with Expo Prebuild, checks test signing, and runs Gradle `assembleRelease`. Generated native files and secrets are excluded from source control.
 
-## Version 1.1.0 / build 2
+## Version 1.1.1 / build 3
 
-PokeFightz display name, PF icon and splash; portrait orientation; Android back bridge for the hosted SPA; short-screen scrollable errors. Existing Android package `com.pbranked_6a9d.runable`, scheme and storage namespace are retained for compatibility. Updating an installed APK also requires the same signing certificate; this has not been compared to your existing APK.
+Standalone Metro configuration; native Android error fallback; safer SPA/native back handling; a 25-second loading timeout; valid iOS bundle identifier; development-only analytics debug mode; cleanup for the web safe-area poller; and regression tests for navigation and URL filtering. The APK checksum file now works directly from the downloaded artifact directory.
+
+Existing Android package `com.pbranked_6a9d.runable`, scheme and storage namespace are retained for compatibility. Updating an installed APK also requires the same signing certificate; this has not been compared to your existing APK.
 
 The wrapper and hosted game are separate: publish the revised website, then replace these repository files and rebuild the APK. This ZIP is source code, not an APK.
