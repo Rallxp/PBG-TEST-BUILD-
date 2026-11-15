@@ -20,6 +20,8 @@ jobs:
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
       NODE_ENV: production
+      # Alias of the key inside the private keystore (not secret). Must match the -alias used with keytool.
+      ANDROID_KEY_ALIAS: pokefightz
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,30 +58,58 @@ jobs:
       - name: Generate Android project on GitHub runner
         run: npx expo prebuild --platform android --no-install --clean
 
-      - name: Validate test signing
-        run: node scripts/check-test-signing.cjs
+      - name: Restore private release keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::Repository secret ANDROID_KEYSTORE_BASE64 is not set. See README: Release signing."
+            exit 1
+          fi
+          # Outside the workspace, so it can never end up in the uploaded artifact.
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.keystore"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+
+      - name: Validate release signing
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: node scripts/check-release-signing.cjs
 
       - name: Build installable APK with bundled JavaScript
         working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew :app:assembleRelease --no-daemon --max-workers=2 \
             -PreactNativeArchitectures=arm64-v8a,armeabi-v7a \
             '-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g'
 
-      - name: Verify and collect APK
+      - name: Verify signature and collect APK
         run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
+          [ -n "$APKSIGNER" ] || { echo "::error::apksigner not found"; exit 1; }
+          "$APKSIGNER" verify --print-certs "$APK" | tee signer.txt
+          CERT_SHA256=$(grep -m1 'certificate SHA-256 digest' signer.txt | awk '{print $NF}')
+          [ -n "$CERT_SHA256" ] || { echo "::error::Could not read the APK signing certificate"; exit 1; }
+          # Public React Native / Expo template debug key. Never ship an APK signed with it.
+          if [ "$CERT_SHA256" = "fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c" ]; then
+            echo "::error::APK is signed with the public debug key, not the private release key."
+            exit 1
+          fi
           mkdir -p artifacts
-          cp android/app/build/outputs/apk/release/app-release.apk artifacts/PokeFightz-test.apk
-          (cd artifacts && sha256sum PokeFightz-test.apk > SHA256SUMS.txt)
+          cp "$APK" artifacts/PokeFightz.apk
+          (cd artifacts && sha256sum PokeFightz.apk > SHA256SUMS.txt)
           echo '## PokeFightz Android APK' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Download **PokeFightz-test-apk** from the artifacts section below.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Signed with a test key; not suitable for Google Play. Requires internet access and a public hosted clone.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Download **PokeFightz-apk** from the artifacts section below.' >> "$GITHUB_STEP_SUMMARY"
+          echo "Signed with the private release key. Certificate SHA-256: \`$CERT_SHA256\`" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Requires internet access and a public hosted clone.' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload APK download
         uses: actions/upload-artifact@v4
         with:
-          name: PokeFightz-test-apk
+          name: PokeFightz-apk
           path: artifacts/
           if-no-files-found: error
           retention-days: 14
